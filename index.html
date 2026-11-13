@@ -1,0 +1,540 @@
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>LUDO X</title>
+
+<style>
+*{box-sizing:border-box}
+body{
+ margin:0;padding:15px 10px 30px;
+ background:radial-gradient(circle at top,#263c60,#101522 75%);
+ color:white;font-family:Arial,sans-serif;
+ text-align:center;min-height:100vh
+}
+header{margin-bottom:18px}
+h1{margin:5px;color:#ffc64a;font-size:34px;letter-spacing:2px}
+header p{color:#aebbd0;font-size:13px}
+.panel{
+ max-width:490px;margin:auto;padding:15px;
+ background:#1b273a;border:1px solid #354965;
+ border-radius:20px;box-shadow:0 15px 40px #0007
+}
+.section-title{font-weight:bold;color:#ffc64a;margin:12px}
+select,button,input{font:inherit}
+select{
+ padding:11px;background:#293b55;color:white;
+ border:1px solid #506582;border-radius:10px
+}
+button{cursor:pointer}
+.primary{
+ background:linear-gradient(135deg,#ffdc77,#efa928);
+ color:#222b39;border:0;padding:12px 20px;
+ border-radius:12px;font-weight:bold
+}
+.secondary{
+ background:#30435f;color:#FFFFFFF3002E;border:1px solid #506582;
+ padding:10px 15px;border-radius:10px
+}
+.controls{
+ display:flex;gap:8px;justify-content:center;
+ flex-wrap:wrap;margin:12px 0
+}
+.settings{
+ display:none;text-align:right;background:#263750;
+ padding:13px;border-radius:14px;margin:12px 0
+}
+.settings label{
+ display:flex;justify-content:space-between;
+ align-items:center;padding:9px 0
+}
+input[type=range]{accent-color:#ffc64a;width:55%}
+input[type=checkbox]{accent-color:#ffc64a;width:19px;height:19px}
+.board{
+ width:min(94vw,440px);aspect-ratio:1;
+ margin:16px auto;background:#fff;
+ border:5px solid #fff;border-radius:8px;
+ display:grid;grid-template-columns:repeat(15,1fr);
+ grid-template-rows:repeat(15,1fr);
+ position:relative;overflow:hidden;
+ box-shadow:0 12px 28px #0008
+}
+.cell{
+ position:relative;border:1px solid #d8dce4;
+ display:flex;align-items:center;justify-content:center;
+ min-width:0;min-height:0
+}
+.track{background:#fff}
+.redHome{background:#e84b50}
+.greenHome{background:#299b66}
+.yellowHome{background:#e8bd35}
+.blueHome{background:#3984d9}
+.homeInner{
+ position:absolute;inset:12%;
+ background:white;border-radius:12%;
+ display:grid;grid-template-columns:1fr 1fr;
+ grid-template-rows:1fr 1fr;gap:8%;
+ padding:10%
+}
+.homeSpot{
+ border-radius:50%;border:2px solid #bbb;
+ background:#f5f5f5
+}
+.redLane{background:#ef777a}
+.greenLane{background:#70c99b}
+.yellowLane{background:#f6df8b}
+.blueLane{background:#80b5ed}
+.safe:after{
+ content:"★";color:#c0a044;font-size:clamp(7px,2vw,13px)
+}
+.center{
+ grid-column:7/10;grid-row:7/10;
+ background:conic-gradient(
+ #299b66 0deg 90deg,#e8bd35 90deg 180deg,
+ #3984d9 180deg 270deg,#e84b50 270deg 360deg
+ );
+ display:flex;align-items:center;justify-content:center;
+ color:white;font-weight:bold;font-size:clamp(10px,3vw,16px);
+ text-shadow:0 2px 4px #000
+}
+.token{
+ position:relative;z-index:4;
+ width:90%;height:90%;max-width:25px;max-height:25px;
+ border:2px solid white;border-radius:50%;
+ color:white;font-size:clamp(7px,2vw,11px);
+ font-weight:bold;padding:0;
+ box-shadow:0 2px 4px #0007;
+ display:flex;align-items:center;justify-content:center
+}
+.token:disabled{cursor:default}
+.token.selectable{
+ outline:3px solid #ffc64a;
+ animation:pulse .7s infinite alternate;
+ cursor:pointer
+}
+@keyframes pulse{
+ from{transform:scale(.85)}
+ to{transform:scale(1.12)}
+}
+.redToken{background:#df333b}
+.greenToken{background:#16864e}
+.yellowToken{background:#c49712}
+.blueToken{background:#216fc4}
+.gameInfo{
+ background:#263750;padding:13px;border-radius:13px;
+ margin:12px 0
+}
+#turn{font-weight:bold;font-size:18px;margin:5px}
+#message{font-size:13px;color:#c5d1e1;min-height:20px}
+.dice{
+ font-size:55px;margin:5px;
+ filter:drop-shadow(0 4px 4px #0005)
+}
+#roll{min-width:150px}
+.players{
+ display:grid;grid-template-columns:1fr 1fr;
+ gap:8px;margin:12px 0
+}
+.player{
+ border:2px solid transparent;border-radius:12px;
+ padding:10px;background:#293a53;font-size:14px
+}
+.player.active{border-color:#ffc64a;background:#354967}
+.player b{display:block;margin-bottom:5px}
+.redText{color:#ff777c}
+.greenText{color:#6be3a1}
+.yellowText{color:#ffe17a}
+.blueText{color:#7ebaff}
+.footer{color:#8494ad;font-size:11px;margin-top:15px}
+</style>
+</head>
+
+<body>
+<header>
+ <h1>🎲 LUDO X</h1>
+ <p>لعبة اللودو الجماعية على هاتف واحد</p>
+</header>
+
+<div class="panel">
+
+ <div class="section-title">⚙️ إعداد المباراة</div>
+ <div class="controls">
+  <select id="playerCount">
+   <option value="2">لاعبان</option>
+   <option value="3">3 لاعبين</option>
+   <option value="4" selected>4 لاعبين</option>
+  </select>
+  <button class="primary" onclick="newGame()">مباراة جديدة</button>
+ </div>
+
+ <div class="controls">
+  <button class="secondary" onclick="showSettings()">⚙️ الإعدادات</button>
+  <button class="secondary" onclick="newGame()">↻ إعادة اللعب</button>
+ </div>
+
+ <div class="settings" id="settings">
+  <h3>إعدادات الصوت</h3>
+  <label>
+   <span>تشغيل الأصوات</span>
+   <input type="checkbox" id="soundSwitch" checked>
+  </label>
+  <label>
+   <span>مستوى الصوت</span>
+   <input type="range" id="volume" min="0" max="100" value="60">
+  </label>
+  <button class="secondary" onclick="showSettings()">إغلاق</button>
+ </div>
+
+ <div class="section-title">🏁 لوحة اللعب</div>
+ <div class="board" id="board"></div>
+
+ <div class="gameInfo">
+  <div id="turn">ابدأ مباراة جديدة</div>
+  <div class="dice" id="dice">🎲</div>
+  <button class="primary" id="roll" onclick="rollDice()">ارمِ النرد</button>
+  <div id="message">اختر عدد اللاعبين وابدأ اللعب</div>
+ </div>
+
+ <div class="section-title">👥 اللاعبون</div>
+ <div class="players" id="players"></div>
+
+ <div class="footer">
+  LUDO X • Local Multiplayer • الإصدار التجريبي
+ </div>
+</div>
+
+<script>
+const colors=[
+ {name:"الأحمر",css:"red",token:"redToken",start:0},
+ {name:"الأخضر",css:"green",token:"greenToken",start:13},
+ {name:"الأصفر",css:"yellow",token:"yellowToken",start:26},
+ {name:"الأزرق",css:"blue",token:"blueToken",start:39}
+];
+
+const route=[
+ [6,1],[6,2],[6,3],[6,4],[6,5],
+ [5,6],[4,6],[3,6],[2,6],[1,6],[0,6],
+ [0,7],[0,8],[1,8],[2,8],[3,8],[4,8],[5,8],
+ [6,9],[6,10],[6,11],[6,12],[6,13],[6,14],
+ [7,14],[8,14],[8,13],[8,12],[8,11],[8,10],[8,9],
+ [9,8],[10,8],[11,8],[12,8],[13,8],[14,8],
+ [14,7],[14,6],[13,6],[12,6],[11,6],[10,6],[9,6],
+ [8,5],[8,4],[8,3],[8,2],[8,1],[8,0],
+ [7,0],[6,0]
+];
+
+const lanes=[
+ [[7,1],[7,2],[7,3],[7,4],[7,5],[7,6]],
+ [[1,7],[2,7],[3,7],[4,7],[5,7],[6,7]],
+ [[7,13],[7,12],[7,11],[7,10],[7,9],[7,8]],
+ [[13,7],[12,7],[11,7],[10,7],[9,7],[8,7]]
+];
+
+const homes=[
+ [[1,1],[1,3],[3,1],[3,3]],
+ [[1,11],[1,13],[3,11],[3,13]],
+ [[11,11],[11,13],[13,11],[13,13]],
+ [[11,1],[11,3],[13,1],[13,3]]
+];
+
+const safeSquares=[0,8,13,21,26,34,39,47];
+
+let players=[];
+let turn=0;
+let rolled=null;
+let finished=false;
+let audio=null;
+let soundOn=true;
+let volume=.6;
+
+const board=document.getElementById("board");
+
+function audioContext(){
+ if(!audio){
+  audio=new (window.AudioContext||window.webkitAudioContext)();
+ }
+ if(audio.state==="suspended")audio.resume();
+ return audio;
+}
+
+function sound(freq,duration=.12,type="sine"){
+ if(!soundOn||volume<=0)return;
+ try{
+  const ctx=audioContext();
+  const osc=ctx.createOscillator();
+  const gain=ctx.createGain();
+  osc.type=type;
+  osc.frequency.setValueAtTime(freq,ctx.currentTime);
+  gain.gain.setValueAtTime(volume*.12,ctx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+duration);
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+  osc.start();
+  osc.stop(ctx.currentTime+duration);
+ }catch(e){}
+}
+
+function soundDice(){
+ sound(300,.08,"triangle");
+ setTimeout(()=>sound(450,.1,"triangle"),90);
+ setTimeout(()=>sound(600,.1,"triangle"),180);
+}
+
+function showSettings(){
+ const s=document.getElementById("settings");
+ s.style.display=s.style.display==="block"?"none":"block";
+}
+
+document.getElementById("soundSwitch").addEventListener("change",e=>{
+ soundOn=e.target.checked;
+ localStorage.setItem("ludoxSound",soundOn);
+ if(soundOn)sound(600);
+});
+
+document.getElementById("volume").addEventListener("input",e=>{
+ volume=Number(e.target.value)/100;
+ localStorage.setItem("ludoxVolume",volume);
+});
+
+soundOn=localStorage.getItem("ludoxSound")!=="false";
+volume=Number(localStorage.getItem("ludoxVolume")??.6);
+document.getElementById("soundSwitch").checked=soundOn;
+document.getElementById("volume").value=volume*100;
+
+function makeBoard(){
+ board.innerHTML="";
+
+ for(let r=0;r<15;r++){
+  for(let c=0;c<15;c++){
+   const el=document.createElement("div");
+   el.className="cell";
+   el.style.gridRow=r+1;
+   el.style.gridColumn=c+1;
+
+   if(r<6&&c<6)el.classList.add("redHome");
+   else if(r<6&&c>8)el.classList.add("greenHome");
+   else if(r>8&&c>8)el.classList.add("yellowHome");
+   else if(r>8&&c<6)el.classList.add("blueHome");
+
+   const laneIndex=lanes.findIndex(l=>l.some(p=>p[0]===r&&p[1]===c));
+   if(laneIndex!==-1){
+    el.className="cell "+["redLane","greenLane","yellowLane","blueLane"][laneIndex];
+   }
+
+   const routeIndex=route.findIndex(p=>p[0]===r&&p[1]===c);
+   if(routeIndex!==-1){
+    el.className="cell track";
+    if(safeSquares.includes(routeIndex))el.classList.add("safe");
+   }
+
+   if((r===6&&c===1)||(r===1&&c===8)||
+      (r===8&&c===13)||(r===13&&c===6)){
+    el.classList.add("safe");
+   }
+
+   board.appendChild(el);
+  }
+ }
+
+ for(let i=0;i<4;i++){
+  const zone=document.createElement("div");
+  zone.style.gridRow=i<2?"1/7":"10/16";
+  zone.style.gridColumn=i===0||i===3?"1/7":"10/16";
+  zone.style.position="relative";
+  zone.style.pointerEvents="none";
+  const inner=document.createElement("div");
+  inner.className="homeInner";
+  for(let j=0;j<4;j++){
+   const spot=document.createElement("div");
+   spot.className="homeSpot";
+   inner.appendChild(spot);
+  }
+  zone.appendChild(inner);
+  board.appendChild(zone);
+ }
+
+ const center=document.createElement("div");
+ center.className="center";
+ center.innerHTML="LUDO<br>X";
+ board.appendChild(center);
+}
+
+function newGame(){
+ const count=Number(document.getElementById("playerCount").value);
+ const activeIndices=count===2?[0,2]:count===3?[0,1,2]:[0,1,2,3];
+
+ players=activeIndices.map(index=>({
+  ...colors[index],
+  colorIndex:index,
+  pieces:[-1,-1,-1,-1],
+  done:0
+ }));
+
+ turn=0;
+ rolled=null;
+ finished=false;
+
+ document.getElementById("dice").textContent="🎲";
+ document.getElementById("message").textContent="بدأت المباراة! ارمِ النرد.";
+ document.getElementById("roll").disabled=false;
+ render();
+}
+
+function getPosition(p,j){
+ const step=p.pieces[j];
+ if(step===-1)return homes[p.colorIndex][j];
+ if(step<52)return route[(p.start+step)%52];
+ return lanes[p.colorIndex][Math.min(step-52,5)];
+}
+
+function render(){
+ makeBoard();
+
+ players.forEach((p,i)=>{
+  p.pieces.forEach((step,j)=>{
+   const pos=getPosition(p,j);
+   const token=document.createElement("button");
+   token.className="token "+p.token;
+   token.style.gridRow=pos[0]+1;
+   token.style.gridColumn=pos[1]+1;
+   token.textContent=j+1;
+   token.title=p.name+" - القطعة "+(j+1);
+
+   const canMove=rolled!==null&&i===turn&&
+    (step===-1?rolled===6:step+rolled<=57);
+
+   if(canMove){
+    token.classList.add("selectable");
+    token.onclick=()=>movePiece(i,j);
+   }
+
+   board.appendChild(token);
+  });
+ });
+
+ document.getElementById("turn").textContent=finished?
+  "🏆 انتهت المباراة":
+  "دور اللاعب: "+players[turn].name;
+
+ document.getElementById("players").innerHTML=players.map((p,i)=>`
+  <div class="player ${i===turn&&!finished?"active":""}">
+   <b class="${p.css}Text">${p.name} ${i===turn&&!finished?"⭐":""}</b>
+   القطع المكتملة: ${p.done}/4
+  </div>
+ `).join("");
+
+ document.getElementById("roll").disabled=rolled!==null||finished;
+}
+
+function rollDice(){
+ if(!players.length||rolled!==null||finished)return;
+
+ soundDice();
+ rolled=Math.floor(Math.random()*6)+1;
+
+ document.getElementById("dice").textContent=
+ ["⚀","⚁","⚂","⚃","⚄","⚅"][rolled-1];
+
+ const p=players[turn];
+ const possible=p.pieces.some(s=>
+  s===-1?rolled===6:s+rolled<=57
+ );
+
+ if(!possible){
+  document.getElementById("message").textContent=
+   "لا توجد حركة ممكنة، ينتقل الدور.";
+  rolled=null;
+  render();
+  setTimeout(nextTurn,800);
+ }else{
+  document.getElementById("message").textContent=
+   "ظهرت "+rolled+"! اختر القطعة التي تريد تحريكها.";
+  render();
+ }
+}
+
+function movePiece(i,j){
+ if(rolled===null||finished||i!==turn)return;
+
+ const p=players[i];
+ const step=p.pieces[j];
+
+ if(step===-1){
+  if(rolled!==6)return;
+  p.pieces[j]=0;
+ }else{
+  if(step+rolled>57)return;
+  p.pieces[j]+=rolled;
+ }
+
+ sound(520,.13,"triangle");
+
+ const current=p.pieces[j];
+
+ if(current<52){
+  const square=(p.start+current)%52;
+
+  if(!safeSquares.includes(square)){
+   players.forEach((enemy,k)=>{
+    if(k===i)return;
+    enemy.pieces=enemy.pieces.map(s=>{
+     if(s>=0&&s<52&&(enemy.start+s)%52===square){
+      sound(180,.2,"sawtooth");
+      document.getElementById("message").textContent=
+       "💥 أكلت قطعة "+enemy.name+"!";
+      return -1;
+     }
+     return s;
+    });
+   });
+  }
+ }
+
+ if(p.pieces[j]===57){
+  p.done++;
+  sound(750,.2);
+  document.getElementById("message").textContent="🎉 وصلت قطعة إلى النهاية!";
+ }
+
+ if(p.done===4){
+  finished=true;
+  sound(850,.4);
+  document.getElementById("turn").textContent="🏆 الفائز: "+p.name;
+  document.getElementById("message").textContent=
+   "مبروك! "+p.name+" فاز بالمباراة!";
+  document.getElementById("roll").disabled=true;
+  rolled=null;
+  render();
+  return;
+ }
+
+ const extra=rolled===6;
+ rolled=null;
+
+ if(!extra){
+  turn=(turn+1)%players.length;
+ }
+
+ document.getElementById("dice").textContent="🎲";
+ document.getElementById("message").textContent=extra?
+  "🎲 حصلت على 6! العب مرة أخرى.":
+  "انتهت الحركة، دور اللاعب التالي.";
+
+ render();
+}
+
+function nextTurn(){
+ if(finished||!players.length)return;
+ turn=(turn+1)%players.length;
+ document.getElementById("dice").textContent="🎲";
+ document.getElementById("message").textContent=
+  "دور "+players[turn].name;
+ render();
+}
+
+newGame();
+</script>
+</body>
+</html>

@@ -1,0 +1,19 @@
+{
+  "name": "لودو x",
+  "short_name": "لودو x",
+  "description": "لودو x - مشروع ويب",
+  "id": "com.klencod.web.project_1794381273077",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0D1117",
+  "theme_color": "#1F6FEB",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "favicon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

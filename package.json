@@ -1,0 +1,13 @@
+{
+  "name": "x",
+  "version": "1.0.0",
+  "description": "لودو x - مشروع ويب",
+  "appId": "com.klencod.web.project_1794381273077",
+  "scripts": {
+    "start": "npx serve .",
+    "dev": "npx serve ."
+  },
+  "keywords": ["web", "html", "css", "javascript"],
+  "author": "",
+  "license": "MIT"
+}
